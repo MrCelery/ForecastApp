@@ -31,7 +31,6 @@ public class RefreshDialog extends DialogFragment implements DialogInterface.OnC
         int i = 0;
         switch (which) {
             case Dialog.BUTTON_POSITIVE:
-
                 break;
             case Dialog.BUTTON_NEGATIVE:
                 break;

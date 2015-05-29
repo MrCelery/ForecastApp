@@ -61,12 +61,8 @@ public class ForecastFragment extends Fragment {
         if (item.getItemId() == R.id.action_refresh) {
 
 
-            Handler handler = new Handler() {
-                public void handleDialogClick() {
-                    updateWeather();
-                };
-            };
-            RefreshDialog refreshDialog = new RefreshDialog(handler);
+
+            RefreshDialog refreshDialog = new RefreshDialog();
             refreshDialog.show(getFragmentManager(), "refreshDialog");
             return true;
         }
