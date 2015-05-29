@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
@@ -59,14 +58,7 @@ public class ForecastFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
 
         if (item.getItemId() == R.id.action_refresh) {
-
-
-            Handler handler = new Handler() {
-                public void handleDialogClick() {
-                    updateWeather();
-                };
-            };
-            RefreshDialog refreshDialog = new RefreshDialog(handler);
+            RefreshDialog refreshDialog = new RefreshDialog();
             refreshDialog.show(getFragmentManager(), "refreshDialog");
             return true;
         }
