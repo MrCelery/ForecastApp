@@ -1,0 +1,36 @@
+<resources xmlns:xliff="http://schemas.android.com/apk/res/android">
+    <string name="app_name">ForecastApp</string>
+
+    <string name="title_tab_1">Трьох годинний прогноз</string>
+    <string name="title_tab_2">Денний прогноз</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Налаштування</string>
+
+    <string name="action_refresh">Оновити</string>
+
+    <string name="yes">Так</string>
+    <string name="no">Ні</string>
+
+    <string name="refresh_dialog_title">Оновлення</string>
+    <string name="refresh_dialog_text">Ви дійсно бажаєте оновити дані про погоду?</string>
+
+    <string name="pref_location_label">Location</string>
+    <string name="pref_location_key">location</string>
+    <string name="pref_location_default">Cherkasy</string>
+    <string name="pref_units_label">Temperature Units</string>
+    <string name="pref_units_key">units</string>
+    <string name="pref_units_default">metric</string>
+    <string name="pref_interval_type_key">type</string>
+
+    <string name="today">Сьогодні</string>
+    <string name="tomorrow">Завтра</string>
+
+
+
+    <string name="format_temperature"><xliff:g id="temp">%d</xliff:g>\u00B0</string>
+    <string name="format_full_friendly_date"><xliff:g id="day">%1$s</xliff:g>, <xliff:g id="date">%2$s</xliff:g></string>
+
+</resources>
