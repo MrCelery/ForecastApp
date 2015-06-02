@@ -1,5 +1,8 @@
 package andrii.goncharenko.forecastapp;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.json.JSONObject;
 
 import java.util.Date;
@@ -7,18 +10,21 @@ import java.util.Date;
 /**
  * Created by Andrey on 29.05.2015.
  */
-public class ForecastThreeHourItem implements IForecastItem{
+public class ForecastThreeHourItem implements IForecastItem {
 
     final String OWM_WEATHER = "weather";
     final String OWM_TEMPERATURE = "main";
     final String OWM_MAX = "temp_max";
     final String OWM_MIN = "temp_min";
-    final String OWM_DESCRIPTION = "main";
+    final String OWM_DESCRIPTION = "description";
     final String OWM_DATE_TXT = "dt_txt";
+    final String OWM_WEATHER_ID = "id";
 
     Date date;
     String description;
-    String highAndLow;
+    int maxTemp;
+    int minTemp;
+    int weatherID;
 
     public ForecastThreeHourItem() {
 
@@ -29,31 +35,43 @@ public class ForecastThreeHourItem implements IForecastItem{
 
         JSONObject weatherObject = null;
         try {
-            date = JSONDateFormat.parse(dayForecast.getString(OWM_DATE_TXT));
+            date = Utility.JSONDateFormat.parse(dayForecast.getString(OWM_DATE_TXT));
             weatherObject = dayForecast.getJSONArray(OWM_WEATHER).getJSONObject(0);
             description = weatherObject.getString(OWM_DESCRIPTION);
 
             JSONObject temperatureObject = dayForecast.getJSONObject(OWM_TEMPERATURE);
-            double high = temperatureObject.getDouble(OWM_MAX);
-            double low = temperatureObject.getDouble(OWM_MIN);
-            highAndLow = formatHighLows(high, low);
+            maxTemp = (int)temperatureObject.getDouble(OWM_MAX);
+            minTemp = (int)temperatureObject.getDouble(OWM_MIN);
+            weatherID = weatherObject.getInt(OWM_WEATHER_ID);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private String formatHighLows(double high, double low) {
-        // For presentation, assume the user doesn't care about tenths of a degree.
-        long roundedHigh = Math.round(high);
-        long roundedLow = Math.round(low);
-
-        String highLowStr = roundedHigh + "/" + roundedLow;
-        return highLowStr;
+    @Override
+    public String getDay() {
+        return Utility.ThreeHourItemFormat.format(date);
     }
 
     @Override
-    public String getItemStr() {
-        return ThreeHourItemFormat.format(date) +" "+ highAndLow + " " + description;
+    public String getDescription() {
+        return description;
     }
+
+    @Override
+    public int getMaxTemp() {
+        return maxTemp;
+    }
+
+    @Override
+    public int getMinTemp() {
+        return minTemp;
+    }
+
+    @Override
+    public int getWeatherID() {
+        return weatherID;
+    }
+
 }

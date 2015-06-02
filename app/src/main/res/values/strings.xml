@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="http://schemas.android.com/apk/res/android">
     <string name="app_name">ForecastApp</string>
 
     <string name="title_tab_1">3 hour forecast</string>
@@ -14,6 +14,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
 
+    <string name="refresh_dialog_title">Refresh</string>
     <string name="refresh_dialog_text">Dou you really want to refresh the weather?</string>
 
     <string name="pref_location_label">Location</string>
@@ -24,7 +25,10 @@
     <string name="pref_units_default">metric</string>
     <string name="pref_interval_type_key">type</string>
 
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
+
+    <string name="format_temperature"><xliff:g id="temp">%d</xliff:g>\u00B0</string>
+    <string name="format_full_friendly_date"><xliff:g id="day">%1$s</xliff:g>, <xliff:g id="date">%2$s</xliff:g></string>
 
 </resources>

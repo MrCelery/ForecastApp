@@ -1,12 +1,8 @@
 package andrii.goncharenko.forecastapp;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.util.Log;
@@ -16,7 +12,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
@@ -32,13 +27,22 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-public class ForecastFragment extends Fragment {
+public class ForecastDayFragment extends Fragment {
 
-    ArrayAdapter<String> adapter;
-    MenuItem miActionProgressItem;
+    private static final int THREE_HOUR_VIEW = 0;
+    private static final int DAY_VIEW = 1;
 
-    public ForecastFragment() {
+    private static final String DAY_INTERVAL_PARAM = "daily?";
+    private static final String THREE_HOUR_INTERVAL_PARAM = "";
+
+    ForecastAdapter adapter;
+    MenuItem actionProgress;
+    MenuItem actionRefresh;
+    List<IForecastItem> forecastItems = new ArrayList<>();
+
+    public ForecastDayFragment() {
     }
 
     @Override
@@ -49,19 +53,17 @@ public class ForecastFragment extends Fragment {
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        // Store instance of the menu item containing progress
-        miActionProgressItem = menu.findItem(R.id.miActionProgress);
-        // Extract the action-view from the menu item
-        ProgressBar v =  (ProgressBar) MenuItemCompat.getActionView(miActionProgressItem);
+        actionProgress = menu.findItem(R.id.action_progress);
+        actionRefresh = menu.findItem(R.id.action_refresh);
+        ProgressBar progressBar;
+        if (actionProgress != null)
+            progressBar =  (ProgressBar) MenuItemCompat.getActionView(actionProgress);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
         if (item.getItemId() == R.id.action_refresh) {
-
-
-
             RefreshDialog refreshDialog = new RefreshDialog();
             refreshDialog.show(getFragmentManager(), "refreshDialog");
             return true;
@@ -74,12 +76,7 @@ public class ForecastFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_forecast, container, false);
-
-        adapter = new ArrayAdapter<>(
-                getActivity(),
-                R.layout.list_item_forecast,
-                R.id.list_item_forecast_textView,
-                new ArrayList<String>());
+        adapter = new ForecastAdapter(this.getActivity(), R.layout.list_item_forecast, forecastItems);
         ListView listView = (ListView) rootView.findViewById(R.id.listView_forecast);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -94,31 +91,16 @@ public class ForecastFragment extends Fragment {
         return rootView;
     }
 
-    private void updateWeather() {
-        miActionProgressItem.setVisible(true);
+    public void updateWeather() {
+        actionProgress.setVisible(true);
+        actionRefresh.setVisible(false);
         FetchWeatherTask weatherTask = new FetchWeatherTask();
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String location = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
-        String units = prefs.getString(getString(R.string.pref_units_key), getString(R.string.pref_units_default));
-        String intervalType = ((MainActivity)getActivity()).getCurrentTab() == 0 ? "" : "daily?";
-        weatherTask.execute(intervalType, location, units);
-    }
-
-    private void showLocation() {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String location = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
-        Uri geoLocation = Uri.parse("geo:0,0?").buildUpon()
-                .appendQueryParameter("q", location)
-                .build();
-        Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
-        intent.setData(geoLocation);
-        if (intent.resolveActivity(getActivity().getPackageManager()) != null)
-            startActivity(intent);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
+        String intervalType =
+                ((MainActivity)getActivity()).getCurrentTab() == THREE_HOUR_VIEW
+                    ? THREE_HOUR_INTERVAL_PARAM
+                    : DAY_INTERVAL_PARAM;
+        weatherTask.execute(intervalType, getActivity().getString(R.string.pref_location_default),
+                getActivity().getString(R.string.pref_units_default), Locale.getDefault().getLanguage());
     }
 
     public class FetchWeatherTask extends AsyncTask<String, Void, List<IForecastItem>> {
@@ -136,17 +118,18 @@ public class ForecastFragment extends Fragment {
             try {
                 final String FORECAST_BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/";
 
-
                 final String QUERY_PARAM = "q";
                 final String FORMAT_PARAM = "mode";
                 final String UNITS_PARAM = "units";
                 final String DAYS_PARAM = "cnt";
+                final String LANG_PARAM = "lang";
                 Uri builtUri = Uri.parse(FORECAST_BASE_URL + params[0])
                         .buildUpon()
                         .appendQueryParameter(QUERY_PARAM, params[1])
                         .appendQueryParameter(FORMAT_PARAM, format)
                         .appendQueryParameter(UNITS_PARAM, params[2])
                         .appendQueryParameter(DAYS_PARAM, Integer.toString(days))
+                        .appendQueryParameter(LANG_PARAM, "ua")
                         .build();
 
                 URL url = new URL(builtUri.toString());
@@ -201,7 +184,7 @@ public class ForecastFragment extends Fragment {
             super();
         }
 
-        private List<IForecastItem> getWeatherDataFromJson(String forecastJsonStr, String intervalType)
+        private List<IForecastItem> getWeatherDataFromJson(String forecastJsonStr, String viewType)
                 throws JSONException {
 
             final String OWM_LIST = "list";
@@ -212,7 +195,7 @@ public class ForecastFragment extends Fragment {
             List<IForecastItem> items = new ArrayList<>();
 
             for (int i = 0; i < weatherArray.length(); i++) {
-                if (intervalType.contains("daily"))
+                if (viewType.equals(DAY_INTERVAL_PARAM))
                     items.add(new ForecastDayItem(weatherArray.getJSONObject(i)));
                 else
                     items.add(new ForecastThreeHourItem(weatherArray.getJSONObject(i)));
@@ -225,8 +208,10 @@ public class ForecastFragment extends Fragment {
             if (strings != null) {
                 adapter.clear();
                 for (IForecastItem forecastItem : strings)
-                    adapter.add(forecastItem.getItemStr());
+                    adapter.add(forecastItem);
             }
+            actionProgress.setVisible(false);
+            actionRefresh.setVisible(true);
         }
     }
 
